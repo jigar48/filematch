@@ -18,7 +18,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from filematch import __version__
 from filematch.config import Settings
-from filematch.readers import ReadError, TableInfo, read_table
+from filematch.readers import ReadError, TableInfo, read_table, table_stats
 from filematch.routes_mapping import router as mapping_router
 from filematch.routes_results import router as results_router
 from filematch.sessions import COOKIE_NAME, Session, SessionStore
@@ -176,7 +176,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 def load_upload(path: Path, filename: str, settings: Settings) -> TableInfo:
     if path.suffix.lower() == ".xlsx":
         check_xlsx_content(path, filename, settings.max_xlsx_uncompressed, settings.max_xlsx_ratio)
-    return read_table(path, filename, settings.max_columns)
+    table = read_table(path, filename, settings.max_columns)
+    table.stats = table_stats(table.df)
+    return table
 
 
 def upload_error(

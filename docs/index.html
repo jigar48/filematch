@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>filematch</title>
+  <meta name="description" content="Local-first tool to compare legacy vs target Excel/CSV files for data-migration QA: column mapping, key-based diff, Excel report with mismatches highlighted.">
+  <style>
+    :root { --bg: #f7f7f5; --panel: #fff; --text: #1d1d1f; --muted: #5d5d66; --line: #dcdcd8; --accent: #1f5fbf; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #141416; --panel: #1d1d21; --text: #ececf0; --muted: #a3a3ad; --line: #34343a; --accent: #7aa7f0; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 960px; margin: 0 auto; padding: 40px 16px 64px; }
+    h1 { font-size: 2.2rem; margin: 0 0 4px; }
+    h2 { font-size: 1.25rem; margin: 40px 0 10px; }
+    .lead { font-size: 1.15rem; color: var(--muted); margin: 0 0 20px; }
+    a { color: var(--accent); }
+    .btns { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0 8px; }
+    .btn { display: inline-block; padding: 9px 16px; border-radius: 6px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 600; }
+    .btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    pre { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-size: 0.9rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+    .card h3 { margin: 0 0 6px; font-size: 1rem; }
+    .card p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+    figure { margin: 0; }
+    figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; display: block; }
+    figcaption { color: var(--muted); font-size: 0.85rem; margin-top: 6px; }
+    footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); margin-top: 48px; padding-top: 16px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>filematch</h1>
+  <p class="lead">Local-first tool to compare legacy vs target Excel/CSV files for data-migration QA: column mapping, key-based diff, Excel report with mismatches highlighted.</p>
+  <div class="btns">
+    <a class="btn" href="https://github.com/jigar48/filematch">View on GitHub</a>
+    <a class="btn ghost" href="https://github.com/jigar48/filematch/releases/tag/v0.1.0">v0.1.0 release</a>
+  </div>
+
+  <h2>What it does</h2>
+  <div class="grid">
+    <div class="card"><h3>Map columns</h3><p>Auto-matches legacy headers to target headers (exact, synonyms, fuzzy), one to one, with a confidence score. You review and edit every row.</p></div>
+    <div class="card"><h3>Diff on a key</h3><p>Joins on 1&ndash;4 key columns and classes every row: matched, mismatched, only in A, only in B, or duplicate key.</p></div>
+    <div class="card"><h3>Report in Excel</h3><p>Download both views as .xlsx with mismatched cells in red, plus a CSV of every row that did not match.</p></div>
+    <div class="card"><h3>Stays on your machine</h3><p>Runs on 127.0.0.1. Files sit in a temp folder that is deleted when the session ends. No accounts, no telemetry.</p></div>
+  </div>
+
+  <h2>Quick start</h2>
+<pre><code>git clone https://github.com/jigar48/filematch.git
+cd filematch
+pip install .
+filematch</code></pre>
+  <p>Then open <code>http://127.0.0.1:8765/</code>. Python 3.11 or newer.</p>
+
+  <h2>Screenshots</h2>
+  <div class="grid">
+    <figure><img src="screenshots/2-mapping.png" alt="Mapping screen with suggested column pairs, confidence and source"><figcaption>Mapping</figcaption></figure>
+    <figure><img src="screenshots/4-results-not-matched.png" alt="Results tab listing rows that did not match, mismatched cells in red"><figcaption>Rows that did not match</figcaption></figure>
+  </div>
+
+  <h2>Support my work</h2>
+  <p>If this tool saved you time, buy me a coffee.</p>
+  <p><a href="https://buymeacoffee.com/buildwithjigar"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy me a coffee" height="41"></a></p>
+
+  <footer>MIT licensed &middot; by Jigar Prajapati (Krisvik) &middot; <a href="https://github.com/jigar48/filematch">github.com/jigar48/filematch</a></footer>
+</main>
+</body>
+</html>

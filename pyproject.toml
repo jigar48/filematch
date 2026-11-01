@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "filematch"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Local-first tool to compare legacy vs target Excel/CSV files for data-migration QA."
 readme = "README.md"
 license = "MIT"
