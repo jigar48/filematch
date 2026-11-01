@@ -35,3 +35,19 @@ jobs:
       - run: python -m pip install --upgrade pip
       - run: pip install -e ".[dev,ai]"
       - run: pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t filematch:ci .
+      - name: Run the container and fetch the upload page
+        run: |
+          docker run -d --name filematch -p 127.0.0.1:8765:8765 filematch:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/ -o page.html; then break; fi
+            sleep 1
+          done
+          grep -q "Compare a legacy file with a target file" page.html
+          docker exec filematch id -un | grep -qx filematch
+          docker logs filematch

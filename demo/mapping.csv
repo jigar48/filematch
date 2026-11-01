@@ -1,0 +1,6 @@
+source_column,target_column
+FName,firstname
+LName,lastname
+Mobile,telephone
+Zip,postcode
+Country,country_id
