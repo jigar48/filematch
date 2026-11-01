@@ -14,7 +14,7 @@
 </div>
 {% endif %}
 
-<form method="post" action="/mapping" class="mapping-form" data-busy="Working...">
+<form method="post" action="/mapping" class="mapping-form" data-busy="Comparing...">
   <h2>Columns</h2>
   <div class="table-wrap">
   <table>
@@ -69,10 +69,17 @@
   </table>
   </div>
 
-  {% block compare_options %}{% endblock %}
+  <h2>Compare options</h2>
+  <div class="card inline-fields">
+    <label><input type="checkbox" name="trim" {% if options.trim %}checked{% endif %}> Trim whitespace</label>
+    <label><input type="checkbox" name="case_insensitive" {% if options.case_insensitive %}checked{% endif %}> Case-insensitive</label>
+    <label><input type="checkbox" name="empty_equals_null" {% if options.empty_equals_null %}checked{% endif %}> Treat empty and null as equal</label>
+    <label>Numeric tolerance (absolute) <input type="number" name="tolerance" min="0" step="any" value="{{ options.tolerance if options.tolerance else 0 }}"></label>
+  </div>
+  <p class="muted">Trim and case also apply to key values. When both values parse as numbers they are compared as numbers, so "1" equals "1.0" even at tolerance 0.</p>
 
   <div class="btn-row">
-    <button type="submit" class="btn">{% block submit_label %}Save mapping{% endblock %}</button>
+    <button type="submit" class="btn">Compare</button>
   </div>
 </form>
 {% endblock %}

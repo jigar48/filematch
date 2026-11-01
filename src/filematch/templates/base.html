@@ -13,6 +13,7 @@
     <nav aria-label="Steps">
       <a href="/" {% if page == "upload" %}aria-current="page"{% endif %}>1. Upload</a>
       <a href="/mapping" {% if page in ("mapping", "ai_preview") %}aria-current="page"{% endif %}>2. Mapping</a>
+      <a href="/results" {% if page == "results" %}aria-current="page"{% endif %}>3. Results</a>
     </nav>
     {% if has_data %}
     <form method="post" action="/clear" class="clear-form" data-confirm="Delete the uploaded files and results for this session?">

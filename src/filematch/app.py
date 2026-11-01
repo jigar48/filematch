@@ -20,6 +20,7 @@ from filematch import __version__
 from filematch.config import Settings
 from filematch.readers import ReadError, TableInfo, read_table
 from filematch.routes_mapping import router as mapping_router
+from filematch.routes_results import router as results_router
 from filematch.sessions import COOKIE_NAME, Session, SessionStore
 from filematch.uploads import UploadError, check_xlsx_content, receive_files
 from filematch.web import SLOTS, current_session, render, set_session_cookie
@@ -99,6 +100,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
     app.add_middleware(SecurityHeadersMiddleware)
     app.include_router(mapping_router)
+    app.include_router(results_router)
     app.mount("/static", StaticFiles(directory=PACKAGE_DIR / "static"), name="static")
 
     @app.get("/", response_class=HTMLResponse)
@@ -150,6 +152,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 table.path = final
                 session.files[slot] = table
                 session.state.clear()  # inputs changed: mapping and results are stale
+                for stale in session.directory.glob("result.parquet"):
+                    stale.unlink(missing_ok=True)
         if errors:
             return upload_error(request, session, is_new, errors, 400)
         response = RedirectResponse("/", status_code=303)

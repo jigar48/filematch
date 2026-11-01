@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Results &middot; filematch{% endblock %}
+{% block content %}
+<h1>Results</h1>
+<ul class="counts" aria-label="Row counts by class">
+  {% for code, label, n in counts %}
+  <li><strong>{{ "{:,}".format(n) }}</strong> {{ label }}</li>
+  {% endfor %}
+</ul>
+<p class="muted">
+  Key: {{ key_labels | join(", ") }}.
+  Options: trim {{ "on" if options.trim else "off" }}, case-insensitive {{ "on" if options.case_insensitive else "off" }},
+  numeric tolerance {{ options.tolerance }}, empty = null {{ "on" if options.empty_equals_null else "off" }}.
+  Rows whose key occurs more than once in their own file are listed as <em>duplicate key</em> and are not compared.
+</p>
+
+<div class="btn-row">
+  <a class="btn" href="/download/all.xlsx">Download all rows (.xlsx)</a>
+  <a class="btn" href="/download/issues.xlsx">Download not matched (.xlsx)</a>
+  <a class="btn btn-ghost" href="/download/issues.csv">Download not matched (.csv)</a>
+  {% if offer_csv == "all" %}<a class="btn btn-ghost" href="/download/all.csv">Download all rows (.csv)</a>{% endif %}
+</div>
+
+<nav class="tabs" aria-label="Result tabs">
+  {% for code, label in tabs.items() %}
+  <a href="/results?tab={{ code }}" {% if code == tab %}aria-current="page"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+
+{% macro pager() %}
+<nav class="pager" aria-label="Pages">
+  {% if page_no > 1 %}
+  <a href="/results?tab={{ tab }}&amp;page=1">&laquo; First</a>
+  <a href="/results?tab={{ tab }}&amp;page={{ page_no - 1 }}">&lsaquo; Previous</a>
+  {% else %}
+  <span class="disabled">&laquo; First</span><span class="disabled">&lsaquo; Previous</span>
+  {% endif %}
+  <span>Page {{ "{:,}".format(page_no) }} of {{ "{:,}".format(pages) }} &middot; {{ "{:,}".format(total) }} rows</span>
+  {% if page_no < pages %}
+  <a href="/results?tab={{ tab }}&amp;page={{ page_no + 1 }}">Next &rsaquo;</a>
+  <a href="/results?tab={{ tab }}&amp;page={{ pages }}">Last &raquo;</a>
+  {% else %}
+  <span class="disabled">Next &rsaquo;</span><span class="disabled">Last &raquo;</span>
+  {% endif %}
+</nav>
+{% endmacro %}
+
+{{ pager() }}
+{% if rows %}
+<div class="table-wrap">
+<table class="results">
+  <thead>
+    <tr>{% for h in headers %}<th scope="col">{{ h }}</th>{% endfor %}</tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td><span class="badge badge-{{ row.status }}">{{ row.label }}</span></td>
+      {% for k in row.key_values %}<td>{{ k if k is not none else "" }}</td>{% endfor %}
+      {% for cell in row.cells %}
+      <td{% if cell.mismatch %} class="mismatch"{% endif %}>{% if cell.mismatch %}<span class="visually-hidden">Mismatch: </span>{% endif %}{{ cell.value if cell.value is not none else "" }}</td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{{ pager() }}
+{% else %}
+<p>No rows in this tab.</p>
+{% endif %}
+{% endblock %}
