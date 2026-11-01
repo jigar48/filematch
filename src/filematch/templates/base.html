@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}filematch{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">filematch</a>
+    <nav aria-label="Steps">
+      <a href="/" {% if page == "upload" %}aria-current="page"{% endif %}>1. Upload</a>
+      {% block nav_extra %}{% endblock %}
+    </nav>
+    {% if has_data %}
+    <form method="post" action="/clear" class="clear-form" data-confirm="Delete the uploaded files and results for this session?">
+      <button type="submit" class="btn btn-ghost">Clear session</button>
+    </form>
+    {% endif %}
+  </header>
+  <main>
+    {% if errors %}
+    <div class="alert alert-error" role="alert">
+      <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer>
+    filematch {{ version }} &middot; runs locally; your files stay in a temp folder on this machine and are deleted when the session ends.
+  </footer>
+</body>
+</html>

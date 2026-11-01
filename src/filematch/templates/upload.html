@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Upload &middot; filematch{% endblock %}
+{% block content %}
+<h1>Compare a legacy file with a target file</h1>
+<p class="lead">Upload File A (legacy export) and File B (target export) as .xlsx or .csv. Row 1 must be the header row. Optionally add File C, a mapping file whose first two columns are the A column and the B column.</p>
+
+<form method="post" action="/upload" enctype="multipart/form-data" class="card upload-form" data-busy="Uploading...">
+  {% for slot, label in slots.items() %}
+  <div class="field">
+    <label for="{{ slot }}">{{ label }}{% if slot == "file_c" %} <span class="muted">(optional)</span>{% endif %}</label>
+    <input type="file" id="{{ slot }}" name="{{ slot }}" accept=".xlsx,.csv">
+  </div>
+  {% endfor %}
+  <p class="muted">Limit {{ max_upload_mb }} MB per file. First sheet only for .xlsx. CSV must be UTF-8 or Windows-1252.</p>
+  <button type="submit" class="btn">Upload</button>
+</form>
+
+{% if files %}
+<h2>Uploaded files</h2>
+<div class="table-wrap">
+<table class="summary">
+  <thead>
+    <tr><th scope="col">File</th><th scope="col">Name</th><th scope="col">Format</th><th scope="col">Rows</th><th scope="col">Columns</th><th scope="col">Empty cells</th><th scope="col">Duplicate keys</th></tr>
+  </thead>
+  <tbody>
+    {% for f in files %}
+    <tr>
+      <th scope="row">{{ f.label }}</th>
+      <td>{{ f.name }}</td>
+      <td>{{ f.kind | upper }}{% if f.encoding %}, {{ f.encoding }}{% endif %}{% if f.delimiter_name %}, {{ f.delimiter_name }}-separated{% endif %}</td>
+      <td>{{ "{:,}".format(f.rows) }}</td>
+      <td>{{ f.columns }}</td>
+      {% if f.stats %}
+      <td>{{ "{:,}".format(f.stats.empty_cells) }}</td>
+      <td>{{ "{:,}".format(f.stats.duplicate_keys) }} <span class="muted">({{ "{:,}".format(f.stats.duplicate_key_rows) }} rows, key: {{ f.key }})</span></td>
+      {% else %}
+      <td colspan="2" class="muted">mapping file</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}
