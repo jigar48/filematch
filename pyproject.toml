@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "filematch"
+version = "0.1.0.dev0"
+description = "Local-first tool to compare legacy vs target Excel/CSV files for data-migration QA."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Jigar Prajapati" }]
+requires-python = ">=3.11"
+keywords = ["data-migration", "reconciliation", "excel", "csv", "data-quality", "polars"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "fastapi>=0.160",
+    "uvicorn>=0.50",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.30",
+    "polars>=2.0",
+    "fastexcel>=0.21",
+    "xlsxwriter>=3.2",
+    "rapidfuzz>=3.14",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+ai = ["anthropic>=2.0"]
+dev = [
+    "pytest>=8",
+    "ruff>=0.15",
+    "openpyxl>=3.1",
+    "playwright>=1.50",
+    "build>=1.2",
+    "httpx>=0.28",
+]
+
+[project.scripts]
+filematch = "filematch.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/jigar48/filematch"
+Issues = "https://github.com/jigar48/filematch/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/filematch"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/filematch", "tests", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "S"]
+ignore = ["S101", "S311"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S", "B011"]
+"scripts/**" = ["S"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
