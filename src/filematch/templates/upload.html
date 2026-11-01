@@ -41,5 +41,10 @@
   </tbody>
 </table>
 </div>
+{% if ready_for_mapping %}
+<div class="btn-row"><a class="btn" href="/mapping">Continue to mapping</a></div>
+{% else %}
+<p class="muted">Upload both File A and File B to continue.</p>
+{% endif %}
 {% endif %}
 {% endblock %}

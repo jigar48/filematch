@@ -6,7 +6,6 @@ import asyncio
 import contextlib
 from collections.abc import AsyncIterator
 from pathlib import Path
-from typing import Any
 
 import jinja2
 from fastapi import FastAPI, Request
@@ -19,12 +18,13 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from filematch import __version__
 from filematch.config import Settings
-from filematch.readers import DELIMITER_NAMES, ReadError, TableInfo, read_table, table_stats
+from filematch.readers import ReadError, TableInfo, read_table
+from filematch.routes_mapping import router as mapping_router
 from filematch.sessions import COOKIE_NAME, Session, SessionStore
 from filematch.uploads import UploadError, check_xlsx_content, receive_files
+from filematch.web import SLOTS, current_session, render, set_session_cookie
 
 PACKAGE_DIR = Path(__file__).parent
-SLOTS = {"file_a": "File A (legacy)", "file_b": "File B (target)", "file_c": "File C (mapping)"}
 # Starlette keeps the brackets on IPv6 Host headers, so "[::1]" is what it compares.
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "::1", "[::1]"]
 SECURITY_HEADERS = [
@@ -98,6 +98,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.templates = make_templates()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
     app.add_middleware(SecurityHeadersMiddleware)
+    app.include_router(mapping_router)
     app.mount("/static", StaticFiles(directory=PACKAGE_DIR / "static"), name="static")
 
     @app.get("/", response_class=HTMLResponse)
@@ -172,71 +173,6 @@ def load_upload(path: Path, filename: str, settings: Settings) -> TableInfo:
     if path.suffix.lower() == ".xlsx":
         check_xlsx_content(path, filename, settings.max_xlsx_uncompressed, settings.max_xlsx_ratio)
     return read_table(path, filename, settings.max_columns)
-
-
-def current_session(request: Request) -> Session | None:
-    store: SessionStore = request.app.state.store
-    return store.get(request.cookies.get(COOKIE_NAME))
-
-
-def set_session_cookie(response: Response, session: Session) -> None:
-    response.set_cookie(
-        COOKIE_NAME,
-        session.id,
-        httponly=True,
-        samesite="strict",
-        path="/",
-    )
-
-
-def file_summaries(session: Session | None) -> list[dict[str, Any]]:
-    if session is None:
-        return []
-    out = []
-    for slot, label in SLOTS.items():
-        table: TableInfo | None = session.files.get(slot)
-        if table is None:
-            continue
-        if table.stats is None and slot != "file_c":
-            table.stats = table_stats(table.df)
-        out.append(
-            {
-                "slot": slot,
-                "label": label,
-                "name": table.original_name,
-                "kind": table.kind,
-                "encoding": table.encoding,
-                "delimiter_name": DELIMITER_NAMES.get(table.delimiter or ""),
-                "rows": table.df.height,
-                "columns": table.df.width,
-                "stats": table.stats if slot != "file_c" else None,
-                "key": table.df.columns[0],
-            }
-        )
-    return out
-
-
-def render(
-    request: Request,
-    template: str,
-    session: Session | None,
-    context: dict[str, Any] | None = None,
-    status_code: int = 200,
-) -> Response:
-    settings: Settings = request.app.state.settings
-    templates: Jinja2Templates = request.app.state.templates
-    ctx = {
-        "session": session,
-        "has_data": bool(session and session.files),
-        "files": file_summaries(session),
-        "slots": SLOTS,
-        "max_upload_mb": settings.max_upload_mb,
-        "version": __version__,
-        "errors": [],
-        "page": template.removesuffix(".html"),
-    }
-    ctx.update(context or {})
-    return templates.TemplateResponse(request, template, ctx, status_code=status_code)
 
 
 def upload_error(
