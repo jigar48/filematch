@@ -17,6 +17,12 @@ from filematch.web import current_session, render
 
 router = APIRouter()
 MAX_KEY_COLUMNS = 4
+DEFAULT_OPTIONS: dict[str, Any] = {
+    "trim": False,
+    "case_insensitive": False,
+    "empty_equals_null": False,
+    "tolerance": 0.0,
+}
 
 
 @dataclass
@@ -66,7 +72,7 @@ def default_selection(session: Session, a: TableInfo, b: TableInfo) -> dict[str,
         "map": [s.b for s in suggestions],
         "key_a": a.columns[:1],
         "key_b": b.columns[:1],
-        "options": {},
+        "options": dict(DEFAULT_OPTIONS),
     }
 
 
@@ -238,11 +244,12 @@ async def mapping_submit(request: Request) -> Response:
 
 
 async def after_confirm(request: Request, session: Session, config: MappingConfig) -> Response:
-    session.state["notice"] = (
-        f"Mapping saved: {len(config.pairs)} column pair(s), "
-        f"key {', '.join(config.key_a)} = {', '.join(config.key_b)}."
-    )
-    return RedirectResponse("/mapping", status_code=303)
+    from filematch.routes_results import run_compare
+
+    result = await run_in_threadpool(run_compare, session, config)
+    with session.lock:
+        session.state["result"] = result
+    return RedirectResponse("/results", status_code=303)
 
 
 @router.get("/mapping/ai")
