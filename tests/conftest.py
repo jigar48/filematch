@@ -59,3 +59,9 @@ def session_of(client: TestClient):
 @pytest.fixture
 def demo_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "demo"
+
+
+@pytest.fixture(autouse=True)
+def _no_real_api_key(monkeypatch):
+    """Tests never see a real key, so no test can reach the network by accident."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)

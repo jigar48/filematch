@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}AI suggestions &middot; filematch{% endblock %}
+{% block content %}
+<h1>Suggest mappings with AI</h1>
+<p class="lead">This is the complete message that will be sent to the Anthropic API (model <code>{{ model }}</code>): the instructions, all {{ column_count }} column names, and up to 5 distinct sample values per column, each cut to 50 characters. No other data from your files is sent.</p>
+<div class="alert alert-info">Sample values can contain personal data (names, emails, phone numbers). Only continue if you are allowed to share them with the API provider.</div>
+<pre class="payload">{{ request_text }}</pre>
+<form method="post" action="/mapping/ai" data-busy="Waiting for the AI (up to 30 s)...">
+  <div class="btn-row">
+    <button type="submit" class="btn">Send and suggest</button>
+    <a class="btn btn-ghost" href="/mapping">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Mapping &middot; filematch{% endblock %}
+{% block content %}
+<h1>Map columns</h1>
+<p class="lead">Each File A column ({{ file_a }}) is matched to at most one File B column ({{ file_b }}). Check every row; set a column to <em>ignore</em> to leave it out of the comparison.</p>
+
+{% if notice %}<div class="alert alert-info" role="status">{{ notice }}</div>{% endif %}
+{% if ai_message %}<div class="alert alert-info" role="status">{{ ai_message }}</div>{% endif %}
+
+{% if ai_available %}
+<div class="btn-row">
+  <a class="btn btn-ghost" href="/mapping/ai">Suggest with AI</a>
+  <span class="muted">You will see exactly what is sent before anything leaves this machine.</span>
+</div>
+{% endif %}
+
+<form method="post" action="/mapping" class="mapping-form" data-busy="Working...">
+  <h2>Columns</h2>
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th scope="col">File A column</th><th scope="col">Sample</th><th scope="col">File B column</th><th scope="col">Confidence</th><th scope="col">Source</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr class="{% if row.selected is none %}ignored{% endif %}">
+        <th scope="row"><label for="map_{{ row.index }}">{{ row.column }}</label></th>
+        <td class="muted">{{ row.sample }}</td>
+        <td>
+          <select id="map_{{ row.index }}" name="map_{{ row.index }}" data-mapping>
+            <option value="" {% if row.selected is none %}selected{% endif %}>&mdash; ignore &mdash;</option>
+            {% for col in columns_b %}
+            <option value="{{ loop.index0 }}" {% if row.selected == col %}selected{% endif %}>{{ col }}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td>{% if row.source %}{{ row.score }}{% else %}<span class="muted">&ndash;</span>{% endif %}</td>
+        <td>{% if row.source %}<span class="badge">{{ row.source }}</span>{% else %}<span class="muted">no match</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Key</h2>
+  <p class="muted">Rows are joined on the key. Use up to 4 columns per side for a composite key; A and B key columns are paired in order. Rows whose key appears more than once in their own file are reported as duplicates and not compared.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th scope="col">#</th><th scope="col">File A key column</th><th scope="col">File B key column</th></tr></thead>
+    <tbody>
+      {% for k in keys %}
+      <tr>
+        <th scope="row">{{ k.n + 1 }}</th>
+        <td>
+          <select name="key_a_{{ k.n }}" aria-label="File A key column {{ k.n + 1 }}">
+            <option value="">&mdash; none &mdash;</option>
+            {% for col in columns_a %}<option value="{{ loop.index0 }}" {% if k.a == col %}selected{% endif %}>{{ col }}</option>{% endfor %}
+          </select>
+        </td>
+        <td>
+          <select name="key_b_{{ k.n }}" aria-label="File B key column {{ k.n + 1 }}">
+            <option value="">&mdash; none &mdash;</option>
+            {% for col in columns_b %}<option value="{{ loop.index0 }}" {% if k.b == col %}selected{% endif %}>{{ col }}</option>{% endfor %}
+          </select>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% block compare_options %}{% endblock %}
+
+  <div class="btn-row">
+    <button type="submit" class="btn">{% block submit_label %}Save mapping{% endblock %}</button>
+  </div>
+</form>
+{% endblock %}
