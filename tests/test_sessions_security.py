@@ -106,3 +106,9 @@ def test_templates_autoescape_enabled(client):
 def test_no_openapi_docs(client):
     assert client.get("/docs").status_code == 404
     assert client.get("/openapi.json").status_code == 404
+
+
+def test_ai_preview_box_wraps_long_lines(client):
+    css = client.get("/static/style.css").text
+    rule = next(line for line in css.splitlines() if line.startswith("pre.payload"))
+    assert "white-space: pre-wrap" in rule

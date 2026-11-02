@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.2] - 2026-11-02
+
+### Fixed
+
+- The AI preview box now wraps long lines (`white-space: pre-wrap`), so the instruction line no longer runs off-screen.
+
+### Documentation
+
+- README screenshot captions now state the compare options the screenshot script uses (trim on, case-insensitive on, numeric tolerance 0.01, empty = null off) and the counts they produce (81 not-matched rows), with the default (103) and all-options (75) counts for comparison. The script has a comment saying the option set is deliberate.
+
 ## [0.1.1] - 2026-11-02
 
 ### Fixed
@@ -33,5 +43,6 @@ First release.
 - Session cleanup on "Clear session", after 60 minutes idle, and on shutdown.
 - Fake demo dataset generator, benchmark script, screenshot script, Dockerfile, and CI (ruff, pytest on Python 3.11–3.13, docker build and run).
 
+[0.1.2]: https://github.com/jigar48/filematch/releases/tag/v0.1.2
 [0.1.1]: https://github.com/jigar48/filematch/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jigar48/filematch/releases/tag/v0.1.0
