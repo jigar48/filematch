@@ -60,6 +60,8 @@ def main() -> None:
             page.screenshot(path=OUT / "1-upload.png")
 
             page.goto(BASE + "/mapping")
+            # Deliberately not the defaults: trim on, case-insensitive on, tolerance 0.01,
+            # empty = null off (81 not-matched rows). The README captions state this.
             page.check("input[name=trim]")
             page.check("input[name=case_insensitive]")
             page.fill("input[name=tolerance]", "0.01")

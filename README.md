@@ -10,13 +10,24 @@ It runs in your browser against a server on your own machine. Nothing is uploade
 
 ## Screenshots
 
-Captured with `scripts/screenshots.py` on the bundled fake demo data.
+Captured with `scripts/screenshots.py` on the bundled fake demo data, with `demo/mapping.csv` as File C. The script compares with these options:
+
+- **trim whitespace: on**
+- **case-insensitive: on**
+- **numeric tolerance: 0.01**
+- **treat empty and null as equal: off**
+
+That gives 1,941 matched, 24 mismatched, 25 only in A, 15 only in B and 17 duplicate key: 2,022 rows in all, 81 of them not matched. The 24 mismatched rows are the 18 planted real differences plus the 6 planted empty-vs-null cells, which stay mismatched because that option is off.
 
 | Upload and file counts | Mapping |
 |---|---|
 | ![Upload screen with row, column, empty-cell and duplicate-key counts](docs/screenshots/1-upload.png) | ![Mapping screen with suggested column pairs, confidence and source](docs/screenshots/2-mapping.png) |
+| File A: 2,000 rows, 5 duplicate keys (10 rows). File B: 1,987 rows, 3 duplicate keys (6 rows). File C: 5 mapping pairs. | Five pairs come from the mapping file, the rest are exact or synonym matches. The options above are set further down this page, below the part shown. |
 | **Results: all rows** | **Results: not matched** |
 | ![All rows side by side with mismatched cells in red](docs/screenshots/3-results-all.png) | ![Rows that did not match, with a status column](docs/screenshots/4-results-not-matched.png) |
+| Options: trim on, case-insensitive on, tolerance 0.01, empty = null off. 2,022 rows: 1,941 matched, 24 mismatched, 25 only in A, 15 only in B, 17 duplicate key. | Same options. 81 rows: 24 mismatched + 25 only in A + 15 only in B + 17 duplicate key. |
+
+For comparison, on the same demo data: with every option at its default (all off, tolerance 0) there are 46 mismatched and 103 not-matched rows; with all four options on there are 18 mismatched and 75 not-matched rows. `demo/expected.json` holds both sets of counts and the integration test checks them.
 
 ## Quick start
 
