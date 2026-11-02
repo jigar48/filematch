@@ -44,7 +44,7 @@ Docker was not available on the machine where this release was prepared, so thes
 
 ## How it works
 
-1. **Upload.** File A (legacy) and File B (target), `.xlsx` or `.csv`, plus an optional File C (mapping file). Row 1 is the header row. Every value is read as text, so `007` stays `007`. CSV files are decoded as UTF-8 (BOM-aware) or, failing that, Windows-1252; the delimiter is detected among `,` `;` tab and `|`. For `.xlsx`, only the first sheet is read. The upload screen shows rows, columns, empty cells and duplicate keys (on the first column) for each file.
+1. **Upload.** File A (legacy) and File B (target), `.xlsx` or `.csv`, plus an optional File C (mapping file). Row 1 is the header row. Every value is read as text, so `007` stays `007`. CSV files are decoded as UTF-8 (BOM-aware) or, failing that, Windows-1252; the delimiter is detected among `,` `;` tab and `|`. For `.xlsx`, only the first sheet is read. The upload screen shows rows, columns, empty cells and duplicate keys (on the first column) for each file. These per-file counts look at one file at a time; a key repeated in only one file still makes that key's rows in the other file duplicate key when you compare.
 2. **Mapping.** Each A column is matched to at most one B column, with a confidence from 0 to 100 and a source:
    - **exact**: equal after normalising (lowercase, trim, camelCase split, `_ - .` and spaces treated as one separator), so `E-Mail` = `email`;
    - **synonym**: in the same small built-in group, e.g. `FName` / `firstname`, `Zip` / `postcode`, `CustID` / `entity_id`;
@@ -61,8 +61,8 @@ Docker was not available on the machine where this release was prepared, so thes
 5. **Row classes.**
    - **matched**: key found on both sides and every mapped column is equal;
    - **mismatched**: key found on both sides and at least one mapped column differs;
-   - **only in A** / **only in B**;
-   - **duplicate key**: the row's key occurs more than once **within its own file**. These rows are listed as duplicates and are **not** joined or compared, so a repeated key cannot multiply rows. A key that is duplicated in A but appears once in B therefore shows its B row as *only in B*.
+   - **only in A** / **only in B**: the key is absent from the other file;
+   - **duplicate key**: the key is *ambiguous*, meaning it occurs more than once in File A **or** more than once in File B. Every row with an ambiguous key, in **both** files, is listed as a duplicate and is **not** joined or compared, so a repeated key cannot multiply rows. For example, a key that appears twice in A and once in B gives three duplicate-key rows (two from A, one from B) and no *only in* rows. The status column shows which file each duplicate row comes from.
 6. **Results.** Two tabs: all rows side by side, and every row that is not matched, with a status column. Pages hold 100 rows. Mismatched cells are red and carry a hidden "Mismatch:" label for screen readers. Downloads: both tabs as `.xlsx` (header frozen, autofilter on, both the A and the B cell of a mismatch filled red) and the not-matched tab as CSV (UTF-8 with BOM). If a tab has more rows than Excel allows (1,048,576 including the header), the `.xlsx` download is refused and a CSV is offered instead.
 
 ## AI suggestions
@@ -116,7 +116,7 @@ The full-table xlsx export is the slow step: it writes about 10 million cells on
 - Dates are compared as text, so format differences (`2024-01-31` vs `31/01/2024`) show up as mismatches.
 - Only the first sheet of an `.xlsx` file is read.
 - CSV files must be UTF-8 or Windows-1252.
-- Rows with duplicate keys are listed but not compared.
+- Rows with an ambiguous key (repeated in either file) are listed as duplicate key in both files but not compared.
 - In mapped value columns, values that both parse as numbers are compared as numbers, so `007` and `7` count as equal there. Key values are always matched as text, so leading zeros in keys are kept.
 - Built as a single-user local tool. It keeps sessions in memory in one process. Do not expose it on a network.
 - AI and fuzzy suggestions can be wrong. Review every mapping before you compare.

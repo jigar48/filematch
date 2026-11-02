@@ -48,6 +48,9 @@ B_HEADERS = [
 ]  # fmt: skip
 
 N_COMMON, N_ONLY_A, N_ONLY_B, N_DUP_A, N_DUP_B = 1965, 25, 15, 5, 3
+# Keys duplicated in A that also appear once in B. The key is ambiguous, so all
+# of its rows (both A rows and the B row) are classed as duplicate key.
+N_DUP_A_ALSO_IN_B = 1
 
 # Planted value differences between A and B, one per row, on common keys.
 PLANT = {
@@ -149,6 +152,7 @@ def main() -> None:
         rows_a.append(a_row(p))
         rows_a.append(a_row({**p, "phone": other(rng, ["555-0100", "555-0101"], p["phone"])}))
     rows_b = [b_row(p) for p in b_people + only_b]
+    rows_b += [b_row(p) for p in dup_a[:N_DUP_A_ALSO_IN_B]]
     for p in dup_b:
         rows_b.append(b_row(p))
         rows_b.append(b_row({**p, "city": other(rng, [c for c, _, _ in CITIES], p["city"])}))
@@ -190,7 +194,7 @@ def main() -> None:
     n_diff = sum(PLANT.values())
     default_mismatched = n_diff + N_EMPTY_VS_NULL
     lenient_mismatched = PLANT["numeric_outside"] + PLANT["value"]
-    duplicate_rows = 2 * (N_DUP_A + N_DUP_B)
+    duplicate_rows = 2 * (N_DUP_A + N_DUP_B) + N_DUP_A_ALSO_IN_B
     expected = {
         "seed": SEED,
         "file_a": {
@@ -209,7 +213,11 @@ def main() -> None:
             "duplicate_keys": N_DUP_B,
             "duplicate_key_rows": 2 * N_DUP_B,
         },
-        "planted": {**PLANT, "empty_vs_null": N_EMPTY_VS_NULL},
+        "planted": {
+            **PLANT,
+            "empty_vs_null": N_EMPTY_VS_NULL,
+            "dup_a_keys_also_in_b": N_DUP_A_ALSO_IN_B,
+        },
         "default_options": {
             "options": {
                 "trim": False,

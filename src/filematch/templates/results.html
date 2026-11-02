@@ -11,7 +11,7 @@
   Key: {{ key_labels | join(", ") }}.
   Options: trim {{ "on" if options.trim else "off" }}, case-insensitive {{ "on" if options.case_insensitive else "off" }},
   numeric tolerance {{ options.tolerance }}, empty = null {{ "on" if options.empty_equals_null else "off" }}.
-  Rows whose key occurs more than once in their own file are listed as <em>duplicate key</em> and are not compared.
+  If a key occurs more than once in File A or in File B, every row with that key, in both files, is listed as <em>duplicate key</em> and is not compared.
 </p>
 
 <div class="btn-row">
