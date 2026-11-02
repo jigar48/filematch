@@ -41,15 +41,15 @@ def test_row_classes_default_options(tmp_path):
         "matched": 2,  # 1 and 9 (null vs null is equal)
         "mismatched": 3,  # 2 (whitespace), 3 (case), 4 (1.00 vs 1.01, "" vs null)
         "only_in_a": 1,  # 5
-        "only_in_b": 2,  # 6, and 7 because both A rows with key 7 are duplicates
-        "duplicate_key": 4,  # 7 twice in A, 8 twice in B
+        "only_in_b": 1,  # 6
+        "duplicate_key": 5,  # key 7: twice in A + once in B; key 8: twice in B
     }
     assert status_of(frame, "1") == ["matched"]
     assert status_of(frame, "5") == ["only_in_a"]
     assert status_of(frame, "6") == ["only_in_b"]
-    assert sorted(status_of(frame, "7")) == ["duplicate_key", "duplicate_key", "only_in_b"]
+    assert status_of(frame, "7") == ["duplicate_key"] * 3
     dups = frame.filter(pl.col("status") == "duplicate_key")
-    assert sorted(dups["dup_side"].to_list()) == ["A", "A", "B", "B"]
+    assert sorted(dups["dup_side"].to_list()) == ["A", "A", "B", "B", "B"]
     assert result.total == 12 and result.issues == 10
 
 
@@ -141,9 +141,56 @@ def test_composite_key_duplicates(tmp_path):
         "matched": 1,
         "mismatched": 0,
         "only_in_a": 0,
-        "only_in_b": 1,
+        "only_in_b": 0,
+        "duplicate_key": 3,  # (1, A) twice in A and once in B
+    }
+
+
+def test_key_twice_in_a_once_in_b(tmp_path):
+    a = pl.DataFrame({"k": ["1", "1", "2"], "v": ["x", "y", "z"]})
+    b = pl.DataFrame({"k": ["1", "2"], "v": ["x", "z"]})
+    result, frame = run(tmp_path, a=a, b=b, key_a=["k"], key_b=["k"], pairs=[("v", "v")])
+    assert result.counts == {
+        "matched": 1,
+        "mismatched": 0,
+        "only_in_a": 0,
+        "only_in_b": 0,
+        "duplicate_key": 3,
+    }
+    dups = frame.filter(pl.col("k0") == "1")
+    assert dups["status"].to_list() == ["duplicate_key"] * 3
+    assert sorted(dups["dup_side"].to_list()) == ["A", "A", "B"]
+
+
+def test_key_twice_in_b_once_in_a(tmp_path):
+    a = pl.DataFrame({"k": ["1"], "v": ["x"]})
+    b = pl.DataFrame({"k": ["1", "1"], "v": ["x", "y"]})
+    result, _ = run(tmp_path, a=a, b=b, key_a=["k"], key_b=["k"], pairs=[("v", "v")])
+    assert result.counts["duplicate_key"] == 3
+    assert result.counts["only_in_a"] == 0 and result.counts["only_in_b"] == 0
+
+
+def test_key_twice_in_a_absent_in_b(tmp_path):
+    a = pl.DataFrame({"k": ["1", "1", "2"], "v": ["x", "y", "z"]})
+    b = pl.DataFrame({"k": ["2"], "v": ["z"]})
+    result, _ = run(tmp_path, a=a, b=b, key_a=["k"], key_b=["k"], pairs=[("v", "v")])
+    assert result.counts == {
+        "matched": 1,
+        "mismatched": 0,
+        "only_in_a": 0,
+        "only_in_b": 0,
         "duplicate_key": 2,
     }
+
+
+def test_ambiguous_key_respects_trim_and_case(tmp_path):
+    a = pl.DataFrame({"k": ["K1", " k1 "], "v": ["x", "y"]})
+    b = pl.DataFrame({"k": ["k1"], "v": ["x"]})
+    opts = CompareOptions(trim=True, case_insensitive=True)
+    result, _ = run(tmp_path, opts, a=a, b=b, key_a=["k"], key_b=["k"], pairs=[("v", "v")])
+    assert result.counts["duplicate_key"] == 3
+    result, _ = run(tmp_path, a=a, b=b, key_a=["k"], key_b=["k"], pairs=[("v", "v")])
+    assert result.counts["duplicate_key"] == 0  # without trim/case the keys differ
 
 
 def test_key_columns_must_pair(tmp_path):

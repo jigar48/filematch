@@ -99,6 +99,25 @@ def compare(
     b = _side(df_b, key_b, [p[1] for p in pairs], "b", options)
     join_cols = [f"j{i}" for i in range(n_keys)]
 
+    # A key is ambiguous if it repeats in A or in B. Every row with an ambiguous
+    # key, in either file, is a duplicate and stays out of the join.
+    ambiguous = (
+        pl.concat(
+            [a.filter(pl.col("_dup")).select(join_cols), b.filter(pl.col("_dup")).select(join_cols)]
+        )
+        .unique()
+        .with_columns(pl.lit(True).alias("_amb"))
+    )
+
+    def mark(side: pl.DataFrame) -> pl.DataFrame:
+        return (
+            side.join(ambiguous, on=join_cols, how="left", nulls_equal=True, maintain_order="left")
+            .with_columns(pl.col("_amb").fill_null(False).alias("_dup"))
+            .drop("_amb")
+        )
+
+    a, b = mark(a), mark(b)
+
     joined = (
         a.filter(~pl.col("_dup"))
         .with_columns(pl.lit(True).alias("_in_a"))

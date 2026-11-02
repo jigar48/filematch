@@ -2,6 +2,16 @@
 
 All notable changes to this project are documented here.
 
+## [0.1.1] - 2026-11-02
+
+### Fixed
+
+- Duplicate-key classification. A key is now ambiguous if it occurs more than once in File A **or** more than once in File B, and every row with an ambiguous key in **both** files is classed as duplicate key and excluded from the join. Previously, a key repeated in one file but present once in the other left that single row classed as "only in A/B", which was misleading. "Only in A/B" now means the key is absent from the other file.
+
+### Changed
+
+- Demo data: one key duplicated in A now also appears once in B, so the demo exercises the rule above. `demo/expected.json` was regenerated: File B has 1,987 rows and there are 17 duplicate-key rows (was 1,986 and 16).
+
 ## [0.1.0] - 2026-11-01
 
 First release.
@@ -23,4 +33,5 @@ First release.
 - Session cleanup on "Clear session", after 60 minutes idle, and on shutdown.
 - Fake demo dataset generator, benchmark script, screenshot script, Dockerfile, and CI (ruff, pytest on Python 3.11–3.13, docker build and run).
 
+[0.1.1]: https://github.com/jigar48/filematch/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jigar48/filematch/releases/tag/v0.1.0
